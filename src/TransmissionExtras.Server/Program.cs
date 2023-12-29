@@ -1,10 +1,20 @@
 using System.Text.Json.Serialization;
 
+using Microsoft.Extensions.Options;
+
+using TransmissionExtras.Server;
+
 var builder = WebApplication.CreateSlimBuilder(args);
 
 // Add services to the container.
 
 builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
+
+builder.Services
+    .AddOptions<TransmissionOptions>()
+    .Bind(builder.Configuration.GetSection(TransmissionOptions.Section));
+builder.Services
+    .AddSingleton<IValidateOptions<TransmissionOptions>, ValidateTransmissionOptions>();
 
 var app = builder.Build();
 
@@ -26,7 +36,26 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-app.Run();
+try
+{
+    _ = app.Services.GetRequiredService<IOptions<TransmissionOptions>>().Value;
+}
+catch (OptionsValidationException e)
+{
+    LogSettingsValidationFailed(app.Logger, e);
+    return -1;
+}
+
+await app.RunAsync();
+return 0;
+
+partial class Program
+{
+    [LoggerMessage(
+        EventId = EventIds.Program.SettingsValidationFailed,
+        Level = LogLevel.Critical)]
+    static partial void LogSettingsValidationFailed(ILogger logger, OptionsValidationException e);
+}
 
 internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
