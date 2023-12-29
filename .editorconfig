@@ -371,3 +371,6 @@ csharp_style_namespace_declarations = file_scoped
 
 # IDE0161: Convert to file-scoped namespace
 dotnet_diagnostic.IDE0161.severity = warning
+
+# CA1848: Use the LoggerMessage delegates
+dotnet_diagnostic.CA1848.severity = warning
