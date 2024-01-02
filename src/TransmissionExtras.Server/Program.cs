@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 
 using TransmissionExtras.Server;
+using TransmissionExtras.Server.TorrentRemoval;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -15,6 +16,13 @@ builder.Services
     .Bind(builder.Configuration.GetSection(TransmissionOptions.Section));
 builder.Services
     .AddSingleton<IValidateOptions<TransmissionOptions>, ValidateTransmissionOptions>();
+
+builder.Services
+    .AddOptions<RemoveTorrentsOptions>()
+    .Bind(builder.Configuration.GetSection(RemoveTorrentsOptions.Section));
+builder.Services
+    .AddSingleton<IValidateOptions<RemoveTorrentsOptions>, ValidateRemoveTorrentsOptions>();
+builder.Services.AddHostedService<RemoveTorrentsJob>();
 
 var app = builder.Build();
 
@@ -39,6 +47,7 @@ app.MapGet("/weatherforecast", () =>
 try
 {
     _ = app.Services.GetRequiredService<IOptions<TransmissionOptions>>().Value;
+    _ = app.Services.GetRequiredService<IOptions<RemoveTorrentsOptions>>().Value;
 }
 catch (OptionsValidationException e)
 {
