@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -12,5 +12,9 @@
     <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Transmission.API.RPC" Version="2.1.2" />
+  </ItemGroup>
 
 </Project>
