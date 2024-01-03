@@ -19,6 +19,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     OnPullRequestBranches = ["main", "develop"],
     CacheIncludePatterns = [],
     CacheKeyFiles = [],
+    FetchDepth = 0,
     InvokedTargets = [nameof(BuildDockerImage)]
 )]
 sealed class Build : NukeBuild
