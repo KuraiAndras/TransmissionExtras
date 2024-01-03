@@ -20,4 +20,14 @@ public static class EventIds
         public const int DryRun = ClassId + 2;
         public const int RemovedTorrent = ClassId + 3;
     }
+
+    public static class VerifyTorrentsJob
+    {
+        private const int ClassId = ProjectId + 002_000;
+
+        public const int VerifyTorrentsJobFailed = ClassId + 0;
+        public const int VerifyingTorrentsFailed = ClassId + 1;
+        public const int DryRun = ClassId + 2;
+        public const int VerifyingTorrent = ClassId + 3;
+    }
 }

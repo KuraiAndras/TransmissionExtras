@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 
 using TransmissionExtras.Server;
 using TransmissionExtras.Server.TorrentRemoval;
+using TransmissionExtras.Server.TorrentVerification;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -23,6 +24,11 @@ builder.Services
 builder.Services
     .AddSingleton<IValidateOptions<RemoveTorrentsOptions>, ValidateRemoveTorrentsOptions>();
 builder.Services.AddHostedService<RemoveTorrentsJob>();
+
+builder.Services
+    .AddOptions<VerifyTorrentsOptions>()
+    .Bind(builder.Configuration.GetSection(VerifyTorrentsOptions.Section));
+builder.Services.AddHostedService<VerifyTorrentsJob>();
 
 var app = builder.Build();
 
