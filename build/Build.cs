@@ -2,6 +2,7 @@ using Nuke.Common;
 using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
+using Nuke.Common.Tooling;
 using Nuke.Common.Tools.Docker;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
@@ -138,6 +139,6 @@ sealed class Build : NukeBuild
         .Executes(() =>
             DockerPush(s =>
                 GitHubActions.EventName != "workflow_dispatch"
-                ? s.SetName($"{DockerTag} {DockerLatestTag}")
+                ? s.SetProcessArgumentConfigurator(a => a.Add(DockerTag).Add(DockerLatestTag))
                 : s.SetName(DockerTag)));
 }
