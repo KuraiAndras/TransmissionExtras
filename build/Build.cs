@@ -2,7 +2,6 @@ using Nuke.Common;
 using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
-using Nuke.Common.Tooling;
 using Nuke.Common.Tools.Docker;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
@@ -59,8 +58,9 @@ sealed class Build : NukeBuild
 
     GitHubActions GitHubActions => GitHubActions.Instance;
 
-    string DockerTag => $"huszky/transmission-extras:{GitVersion.NuGetVersionV2}";
-    string DockerLatestTag => "huszky/transmission-extras:latest";
+    string DockerName => "huszky/transmission-extras";
+    string DockerTag => $"{DockerName}:{GitVersion.NuGetVersionV2}";
+    string DockerLatestTag => $"{DockerName}:latest";
 
     Target Clean => _ => _
         .Before(Restore)
@@ -118,7 +118,7 @@ sealed class Build : NukeBuild
                 s = s
                     .SetFile(Solution.TransmissionExtras_Server.Directory / "Dockerfile")
                     .SetPath(RootDirectory)
-                    .SetTag($"huszky/transmission-extras:{GitVersion.NuGetVersionV2}");
+                    .SetTag(DockerTag);
 
                 if (GitHubActions.EventName != "workflow_dispatch")
                 {
@@ -137,8 +137,7 @@ sealed class Build : NukeBuild
     Target PushDockerImage => _ => _
         .DependsOn(BuildDockerImage)
         .Executes(() =>
-            DockerPush(s =>
-                GitHubActions.EventName != "workflow_dispatch"
-                ? s.SetProcessArgumentConfigurator(a => a.Add(DockerTag).Add(DockerLatestTag))
-                : s.SetName(DockerTag)));
+            DockerPush(s => s
+                .SetName(DockerName)
+                .EnableAllTags()));
 }
