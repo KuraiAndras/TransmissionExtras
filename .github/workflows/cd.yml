@@ -20,6 +20,11 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
+    inputs:
+      dummy:
+        description: "dummy"
+        required: false
 
 jobs:
   ubuntu-22_04:
@@ -32,5 +37,6 @@ jobs:
       - name: 'Run: PushDockerImage, DockerLogin'
         run: ./build.cmd PushDockerImage DockerLogin
         env:
+          dummy: ${{ github.event.inputs.dummy }}
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

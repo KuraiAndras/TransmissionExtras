@@ -27,6 +27,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     "cd",
     GitHubActionsImage.Ubuntu2204,
     OnPushTags = ["*"],
+    OnWorkflowDispatchOptionalInputs = ["dummy"],
     CacheIncludePatterns = [],
     CacheKeyFiles = [],
     FetchDepth = 0,
@@ -54,6 +55,8 @@ sealed class Build : NukeBuild
 
     AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
     AbsolutePath ServerOutput => ArtifactsDirectory / "server";
+
+    GitHubActions GitHubActions => GitHubActions.Instance;
 
     string DockerTag => $"huszky/transmission-extras:{GitVersion.NuGetVersionV2}";
 
@@ -108,10 +111,20 @@ sealed class Build : NukeBuild
     Target BuildDockerImage => _ => _
         .DependsOn(Publish)
         .Executes(() =>
-            DockerBuild(s => s
-                .SetFile(Solution.TransmissionExtras_Server.Directory / "Dockerfile")
-                .SetPath(RootDirectory)
-                .SetTag($"huszky/transmission-extras:{GitVersion.NuGetVersionV2}")));
+            DockerBuild(s =>
+            {
+                s = s
+                    .SetFile(Solution.TransmissionExtras_Server.Directory / "Dockerfile")
+                    .SetPath(RootDirectory)
+                    .SetTag($"huszky/transmission-extras:{GitVersion.NuGetVersionV2}");
+
+                if (GitHubActions.EventName != "workflow_dispatch")
+                {
+                    s = s.SetTag("huszky/transmission-extras:latest");
+                }
+
+                return s;
+            }));
 
     Target DockerLogin => _ => _
         .Before(PushDockerImage)
@@ -123,5 +136,6 @@ sealed class Build : NukeBuild
         .DependsOn(BuildDockerImage)
         .Executes(() =>
             DockerPush(s => s
-                .SetName(DockerTag)));
+                .SetName(DockerTag)
+                .EnableAllTags()));
 }
