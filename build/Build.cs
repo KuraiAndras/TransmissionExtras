@@ -118,12 +118,9 @@ sealed class Build : NukeBuild
                 s = s
                     .SetFile(Solution.TransmissionExtras_Server.Directory / "Dockerfile")
                     .SetPath(RootDirectory)
-                    .SetTag(DockerTag);
-
-                if (GitHubActions.EventName != "workflow_dispatch")
-                {
-                    s = s.SetTag(DockerLatestTag);
-                }
+                    .SetTag(GitHubActions.EventName != "workflow_dispatch"
+                        ? [DockerTag, DockerLatestTag]
+                        : [DockerTag]);
 
                 return s;
             }));
