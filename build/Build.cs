@@ -22,6 +22,17 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     FetchDepth = 0,
     InvokedTargets = [nameof(BuildDockerImage)]
 )]
+[GitHubActions
+(
+    "cd",
+    GitHubActionsImage.Ubuntu2204,
+    OnPushTags = ["*"],
+    CacheIncludePatterns = [],
+    CacheKeyFiles = [],
+    FetchDepth = 0,
+    InvokedTargets = [nameof(PushDockerImage), nameof(DockerLogin)],
+    ImportSecrets = ["DOCKER_USER", "DOCKER_PASSWORD"]
+)]
 sealed class Build : NukeBuild
 {
     public static int Main() => Execute<Build>(x => x.Compile);
@@ -35,8 +46,16 @@ sealed class Build : NukeBuild
     [Parameter("Runtime used for publishing. Default is dotnet default value")]
     readonly string? Runtime;
 
+    [Parameter("Docker user for publishing")]
+    readonly string DockerUser = default!;
+
+    [Parameter("Docker password for publishing")]
+    readonly string DockerPassword = default!;
+
     AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
     AbsolutePath ServerOutput => ArtifactsDirectory / "server";
+
+    string DockerTag => $"huszky/transmission-extras:{GitVersion.NuGetVersionV2}";
 
     Target Clean => _ => _
         .Before(Restore)
@@ -83,7 +102,7 @@ sealed class Build : NukeBuild
             }));
 
     Target SetDockerLogger => _ => _
-        .DependentFor(BuildDockerImage)
+        .DependentFor(BuildDockerImage, PushDockerImage)
         .Executes(() => DockerLogger = (_, log) => Log.Information(log));
 
     Target BuildDockerImage => _ => _
@@ -93,4 +112,16 @@ sealed class Build : NukeBuild
                 .SetFile(Solution.TransmissionExtras_Server.Directory / "Dockerfile")
                 .SetPath(RootDirectory)
                 .SetTag($"huszky/transmission-extras:{GitVersion.NuGetVersionV2}")));
+
+    Target DockerLogin => _ => _
+        .Before(PushDockerImage)
+        .Requires(() => DockerUser, () => DockerPassword)
+        .Executes(() =>
+            Docker($"login --username {DockerUser} --password {DockerPassword}"));
+
+    Target PushDockerImage => _ => _
+        .DependsOn(BuildDockerImage)
+        .Executes(() =>
+            DockerPush(s => s
+                .SetName(DockerTag)));
 }
