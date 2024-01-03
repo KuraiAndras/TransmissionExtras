@@ -59,6 +59,7 @@ sealed class Build : NukeBuild
     GitHubActions GitHubActions => GitHubActions.Instance;
 
     string DockerTag => $"huszky/transmission-extras:{GitVersion.NuGetVersionV2}";
+    string DockerLatestTag => "huszky/transmission-extras:latest";
 
     Target Clean => _ => _
         .Before(Restore)
@@ -120,7 +121,7 @@ sealed class Build : NukeBuild
 
                 if (GitHubActions.EventName != "workflow_dispatch")
                 {
-                    s = s.SetTag("huszky/transmission-extras:latest");
+                    s = s.SetTag(DockerLatestTag);
                 }
 
                 return s;
@@ -135,7 +136,8 @@ sealed class Build : NukeBuild
     Target PushDockerImage => _ => _
         .DependsOn(BuildDockerImage)
         .Executes(() =>
-            DockerPush(s => s
-                .SetName(DockerTag)
-                .EnableAllTags()));
+            DockerPush(s =>
+                GitHubActions.EventName != "workflow_dispatch"
+                ? s.SetName($"{DockerTag} {DockerLatestTag}")
+                : s.SetName(DockerTag)));
 }
