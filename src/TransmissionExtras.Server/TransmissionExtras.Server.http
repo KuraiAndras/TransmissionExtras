@@ -2,5 +2,8 @@
 
 GET {{TransmissionExtras.Server_HostAddress}}/weatherforecast/
 Accept: application/json
+###
 
+GET {{TransmissionExtras.Server_HostAddress}}/api/healthcheck
+Accept: application/json
 ###

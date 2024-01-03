@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 using TransmissionExtras.Server;
@@ -37,6 +39,27 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
+app.MapGet("api/healthcheck", async Task<Results<Ok, ProblemHttpResult>> ([FromServices] IOptions<TransmissionOptions> options) =>
+{
+    try
+    {
+        _ = app.Services.GetRequiredService<IOptions<TransmissionOptions>>().Value;
+        _ = app.Services.GetRequiredService<IOptions<RemoveTorrentsOptions>>().Value;
+
+        var client = TransmissionClientFactory.GetClient(options.Value);
+
+        _ = await client.GetSessionInformationAsync();
+
+        return TypedResults.Ok();
+    }
+    catch (Exception ex)
+    {
+        LogHealthCheckFailed(app.Logger, ex);
+
+        return TypedResults.Problem(title: "Healthchecks failed", detail: ex.Message);
+    }
+});
+
 app.MapGet("/weatherforecast", () =>
 {
     var forecast = Enumerable.Range(1, 5).Select(index =>
@@ -70,6 +93,11 @@ partial class Program
         EventId = EventIds.Program.SettingsValidationFailed,
         Level = LogLevel.Critical)]
     static partial void LogSettingsValidationFailed(ILogger logger, OptionsValidationException e);
+
+    [LoggerMessage(
+        EventId = EventIds.Program.HealthCheckFailed,
+        Level = LogLevel.Critical)]
+    static partial void LogHealthCheckFailed(ILogger logger, Exception e);
 }
 
 internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
@@ -78,4 +106,5 @@ internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary
 }
 
 [JsonSerializable(typeof(WeatherForecast[]))]
+
 internal partial class AppJsonSerializerContext : JsonSerializerContext { }
