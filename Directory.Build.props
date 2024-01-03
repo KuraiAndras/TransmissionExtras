@@ -1,0 +1,11 @@
+<Project>
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1" PrivateAssets="All"/>
+    </ItemGroup>
+</Project>
