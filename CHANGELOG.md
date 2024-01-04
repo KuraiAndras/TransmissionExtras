@@ -2,6 +2,7 @@
 
 - Properly handle torrents which need verification
 - Remove boilerplate weather forecasts
+- Implement health check
 
 # 0.1.11
 

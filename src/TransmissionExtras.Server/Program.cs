@@ -34,7 +34,7 @@ builder.Services.AddHostedService<VerifyTorrentsJob>();
 
 var app = builder.Build();
 
-app.MapGet("api/healthcheck", async Task<Results<Ok, ProblemHttpResult>> ([FromServices] IOptions<TransmissionOptions> options) =>
+app.MapGet("api/healthcheck", async Task<Results<Ok<HealthCheckResult>, ProblemHttpResult>> ([FromServices] IOptions<TransmissionOptions> options) =>
 {
     try
     {
@@ -45,7 +45,7 @@ app.MapGet("api/healthcheck", async Task<Results<Ok, ProblemHttpResult>> ([FromS
 
         _ = await client.GetSessionInformationAsync();
 
-        return TypedResults.Ok();
+        return TypedResults.Ok<HealthCheckResult>(new("Ok"));
     }
     catch (Exception ex)
     {
@@ -82,8 +82,8 @@ partial class Program
     static partial void LogHealthCheckFailed(ILogger logger, Exception e);
 }
 
-record DummyForLater();
+record HealthCheckResult(string Status);
 
-[JsonSerializable(typeof(DummyForLater))]
+[JsonSerializable(typeof(HealthCheckResult))]
 
 internal partial class AppJsonSerializerContext : JsonSerializerContext { }

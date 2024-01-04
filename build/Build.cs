@@ -46,6 +46,8 @@ sealed class Build : NukeBuild
     string DockerTag => $"{DockerName}:{GitVersion.NuGetVersionV2}";
     string DockerLatestTag => $"{DockerName}:latest";
 
+    string DebugContainerName => "transmission-extras-debug";
+
     Target Clean => _ => _
         .Before(Restore)
         .Executes(() =>
@@ -110,6 +112,23 @@ sealed class Build : NukeBuild
                     .SetPath(RootDirectory)
                     .SetTag(tags);
             }));
+
+    Target RunDocker => _ => _
+        .After(BuildDockerImage)
+        .Executes(() =>
+            DockerRun(s => s
+                .SetName(DebugContainerName)
+                .SetImage(DockerTag)
+                .SetEnv("ASPNETCORE_ENVIRONMENT=Development")));
+
+    Target RemoveDockerContainer => _ => _
+        .TriggeredBy(RunDocker)
+        .AssuredAfterFailure()
+        .Executes(() =>
+        {
+            DockerStop(s => s.SetContainers(DebugContainerName));
+            DockerRm(s => s.SetContainers(DebugContainerName));
+        });
 
     Target PushDockerImage => _ => _
         .DependsOn(BuildDockerImage)
