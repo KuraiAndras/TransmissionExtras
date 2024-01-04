@@ -53,6 +53,12 @@ public sealed partial class VerifyTorrentsJob : BackgroundService
 
                     await Task.Delay(_options.Value.CheckInterval, stoppingToken);
                 }
+                catch (TaskCanceledException)
+                {
+                    LogVerifyTorrentsJobStopping();
+
+                    break;
+                }
                 catch (Exception ex)
                 {
                     LogVerifyingTorrentsJobsFailed(ex);
@@ -88,4 +94,10 @@ public sealed partial class VerifyTorrentsJob : BackgroundService
         Level = LogLevel.Information,
         Message = "Verifying torrent {id}, {name}, {error}")]
     private partial void LogVerifyingTorrent(int id, string name, string error);
+
+    [LoggerMessage(
+        EventId = EventIds.VerifyTorrentsJob.VerifyTorrentsJobStopping,
+        Level = LogLevel.Information,
+        Message = "Verify torrents job stopping")]
+    private partial void LogVerifyTorrentsJobStopping();
 }

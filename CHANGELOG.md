@@ -5,6 +5,7 @@
 - Implement health check
 - Use Serilog for logging
 - Log to both console and file
+- Gracefully handle job stopping
 
 # 0.1.11
 
