@@ -5,6 +5,7 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tools.Docker;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
+using Nuke.Components;
 
 using Serilog;
 
@@ -22,9 +23,11 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     FetchDepth = 0,
     InvokedTargets = [nameof(BuildDockerImage)]
 )]
-sealed class Build : NukeBuild
+sealed class Build : NukeBuild, ICreateGitHubRelease
 {
     public static int Main() => Execute<Build>(x => x.Compile);
+
+    private readonly List<string> CreatedImages = [];
 
     [Solution(GenerateProjects = true)] readonly Solution Solution = default!;
     [GitVersion] readonly GitVersion GitVersion = default!;
@@ -97,14 +100,16 @@ sealed class Build : NukeBuild
         .Executes(() =>
             DockerBuild(s =>
             {
-                s = s
+                string[] tags = GitHubActions.EventName != "workflow_dispatch"
+                    ? [DockerTag, DockerLatestTag]
+                    : [DockerTag];
+
+                CreatedImages.AddRange(tags);
+
+                return s
                     .SetFile(Solution.TransmissionExtras_Server.Directory / "Dockerfile")
                     .SetPath(RootDirectory)
-                    .SetTag(GitHubActions.EventName != "workflow_dispatch"
-                        ? [DockerTag, DockerLatestTag]
-                        : [DockerTag]);
-
-                return s;
+                    .SetTag(tags);
             }));
 
     Target PushDockerImage => _ => _
@@ -113,4 +118,8 @@ sealed class Build : NukeBuild
             DockerPush(s => s
                 .SetName(DockerName)
                 .EnableAllTags()));
+
+    public string Name => GitVersion.NuGetVersionV2;
+
+    public IEnumerable<AbsolutePath> AssetFiles { get; } = [];
 }

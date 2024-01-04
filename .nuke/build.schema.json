@@ -18,13 +18,9 @@
           "type": "boolean",
           "description": "Indicates to continue a previously failed build attempt"
         },
-        "DockerPassword": {
+        "GitHubReleaseGitHubToken": {
           "type": "string",
-          "description": "Docker password for publishing"
-        },
-        "DockerUser": {
-          "type": "string",
-          "description": "Docker user for publishing"
+          "default": "Secrets must be entered via 'nuke :secrets [profile]'"
         },
         "Help": {
           "type": "boolean",
@@ -87,7 +83,7 @@
               "BuildDockerImage",
               "Clean",
               "Compile",
-              "DockerLogin",
+              "CreateGitHubRelease",
               "Publish",
               "PushDockerImage",
               "Restore",
@@ -108,7 +104,7 @@
               "BuildDockerImage",
               "Clean",
               "Compile",
-              "DockerLogin",
+              "CreateGitHubRelease",
               "Publish",
               "PushDockerImage",
               "Restore",
