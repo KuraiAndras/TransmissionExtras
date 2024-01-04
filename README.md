@@ -46,7 +46,4 @@ Automatically remove torrents after a set amount of time.
 
 ### Torrent verification
 
-Automatically verify torrents which have errors.
-
-> [!WARNING]  
-> This feature is not yet tested and is not complete
+Automatically verify torrents which need verification.

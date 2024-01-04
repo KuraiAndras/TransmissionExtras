@@ -6,7 +6,7 @@ namespace TransmissionExtras.Server.TorrentVerification;
 
 public sealed partial class VerifyTorrentsJob : BackgroundService
 {
-    private static readonly string[] VerifyTorrentFields = [TorrentFields.ID, TorrentFields.NAME, TorrentFields.ERROR_STRING];
+    private static readonly string[] VerifyTorrentFields = [TorrentFields.ID, TorrentFields.NAME, TorrentFields.ERROR_STRING, TorrentFields.ERROR];
 
     private readonly IOptions<VerifyTorrentsOptions> _options;
     private readonly IOptions<TransmissionOptions> _transmissionOptions;
@@ -31,9 +31,8 @@ public sealed partial class VerifyTorrentsJob : BackgroundService
                 {
                     var torrents = await client.TorrentGetAsync(VerifyTorrentFields);
 
-                    // TODO: properly check for need of verifications
                     var torrentsToVerify = torrents.Torrents
-                        .Where(t => !string.IsNullOrWhiteSpace(t.ErrorString))
+                        .Where(t => t.Error == 3)
                         .ToArray();
 
                     if (!_options.Value.DryRun)

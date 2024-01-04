@@ -1,3 +1,7 @@
+# 0.2.0
+
+- Properly handle torrents which need verification
+
 # 0.1.11
 
 - Fall back to manual releasing
