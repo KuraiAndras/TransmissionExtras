@@ -5,7 +5,6 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tools.Docker;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
-using Nuke.Components;
 
 using Serilog;
 
@@ -46,6 +45,8 @@ sealed class Build : NukeBuild
     string DockerName => "huszky/transmission-extras";
     string DockerTag => $"{DockerName}:{GitVersion.NuGetVersionV2}";
     string DockerLatestTag => $"{DockerName}:latest";
+
+    string DebugContainerName => "transmission-extras-debug";
 
     Target Clean => _ => _
         .Before(Restore)
@@ -100,7 +101,7 @@ sealed class Build : NukeBuild
         .Executes(() =>
             DockerBuild(s =>
             {
-                string[] tags = GitHubActions.EventName != "workflow_dispatch"
+                string[] tags = GitHubActions?.EventName != "workflow_dispatch"
                     ? [DockerTag, DockerLatestTag]
                     : [DockerTag];
 
@@ -112,10 +113,27 @@ sealed class Build : NukeBuild
                     .SetTag(tags);
             }));
 
+    Target RunDocker => _ => _
+        .After(BuildDockerImage)
+        .Executes(() =>
+            DockerRun(s => s
+                .SetName(DebugContainerName)
+                .SetImage(DockerTag)
+                .SetEnv("ASPNETCORE_ENVIRONMENT=Development")));
+
+    Target RemoveDockerContainer => _ => _
+        .TriggeredBy(RunDocker)
+        .AssuredAfterFailure()
+        .Executes(() =>
+        {
+            DockerStop(s => s.SetContainers(DebugContainerName));
+            DockerRm(s => s.SetContainers(DebugContainerName));
+        });
+
     Target PushDockerImage => _ => _
         .DependsOn(BuildDockerImage)
         .Executes(() =>
-            DockerPush(s => s
-                .SetName(DockerName)
-                .EnableAllTags()));
+            CreatedImages.ForEach(i =>
+                DockerPush(s => s
+                    .SetName(DockerName))));
 }

@@ -81,7 +81,9 @@
               "Compile",
               "Publish",
               "PushDockerImage",
+              "RemoveDockerContainer",
               "Restore",
+              "RunDocker",
               "SetDockerLogger"
             ]
           }
@@ -101,7 +103,9 @@
               "Compile",
               "Publish",
               "PushDockerImage",
+              "RemoveDockerContainer",
               "Restore",
+              "RunDocker",
               "SetDockerLogger"
             ]
           }
