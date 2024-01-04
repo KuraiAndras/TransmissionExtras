@@ -122,4 +122,6 @@ sealed class Build : NukeBuild, ICreateGitHubRelease
     public string Name => GitVersion.NuGetVersionV2;
 
     public IEnumerable<AbsolutePath> AssetFiles { get; } = [];
+
+    [Parameter] [Secret] public string GitHubToken { get; } = default!;
 }

@@ -1,3 +1,7 @@
+# 0.1.10
+
+- Try fixing GitHub token usage
+
 # 0.1.9
 
 - Use `GITHUB_TOKEN` secret explicitly
