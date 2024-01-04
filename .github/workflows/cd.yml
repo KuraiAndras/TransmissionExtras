@@ -22,6 +22,4 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: "Run CD"
-        run: ./build.cmd PushDockerImage CreateGitHubRelease
-        env:
-          GITHUBTOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./build.cmd PushDockerImage

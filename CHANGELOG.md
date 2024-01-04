@@ -1,3 +1,7 @@
+# 0.1.11
+
+- Fall back to manual releasing
+
 # 0.1.10
 
 - Try fixing GitHub token usage

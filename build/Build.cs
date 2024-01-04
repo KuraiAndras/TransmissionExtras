@@ -23,7 +23,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     FetchDepth = 0,
     InvokedTargets = [nameof(BuildDockerImage)]
 )]
-sealed class Build : NukeBuild, ICreateGitHubRelease
+sealed class Build : NukeBuild
 {
     public static int Main() => Execute<Build>(x => x.Compile);
 
@@ -118,10 +118,4 @@ sealed class Build : NukeBuild, ICreateGitHubRelease
             DockerPush(s => s
                 .SetName(DockerName)
                 .EnableAllTags()));
-
-    public string Name => GitVersion.NuGetVersionV2;
-
-    public IEnumerable<AbsolutePath> AssetFiles { get; } = [];
-
-    [Parameter] [Secret] public string GitHubToken { get; } = default!;
 }
