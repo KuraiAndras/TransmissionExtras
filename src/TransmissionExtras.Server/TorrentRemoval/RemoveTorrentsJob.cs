@@ -52,9 +52,15 @@ public sealed partial class RemoveTorrentsJob : BackgroundService
 
                     await Task.Delay(_options.Value.CheckInterval, stoppingToken);
                 }
-                catch (Exception ex)
+                catch (TaskCanceledException)
                 {
-                    LogRemoveTorrentsFailed(ex);
+                    LogRemovingTorrentsJobStopping();
+
+                    break;
+                }
+                catch (Exception e)
+                {
+                    LogRemoveTorrentsFailed(e);
                 }
             }
         }
@@ -87,4 +93,10 @@ public sealed partial class RemoveTorrentsJob : BackgroundService
         Level = LogLevel.Information,
         Message = "Removed torrent {id}, {name}, {secondsSeeding} seconds")]
     private partial void LogRemovedTorrent(int id, string name, int secondsSeeding);
+
+    [LoggerMessage(
+        EventId = EventIds.RemoveTorrentsJob.RemovingTorrentsJobStopping,
+        Level = LogLevel.Information,
+        Message = "Removing torrents job stopping")]
+    private partial void LogRemovingTorrentsJobStopping();
 }
