@@ -34,11 +34,6 @@ builder.Services.AddHostedService<VerifyTorrentsJob>();
 
 var app = builder.Build();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
 app.MapGet("api/healthcheck", async Task<Results<Ok, ProblemHttpResult>> ([FromServices] IOptions<TransmissionOptions> options) =>
 {
     try
@@ -58,19 +53,6 @@ app.MapGet("api/healthcheck", async Task<Results<Ok, ProblemHttpResult>> ([FromS
 
         return TypedResults.Problem(title: "Healthchecks failed", detail: ex.Message);
     }
-});
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
 });
 
 try
@@ -100,11 +82,8 @@ partial class Program
     static partial void LogHealthCheckFailed(ILogger logger, Exception e);
 }
 
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+record DummyForLater();
 
-[JsonSerializable(typeof(WeatherForecast[]))]
+[JsonSerializable(typeof(DummyForLater))]
 
 internal partial class AppJsonSerializerContext : JsonSerializerContext { }
