@@ -3,6 +3,8 @@
 - Properly handle torrents which need verification
 - Remove boilerplate weather forecasts
 - Implement health check
+- Use Serilog for logging
+- Log to both console and file
 
 # 0.1.11
 
