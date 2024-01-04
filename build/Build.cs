@@ -5,7 +5,6 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tools.Docker;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
-using Nuke.Components;
 
 using Serilog;
 
@@ -100,7 +99,7 @@ sealed class Build : NukeBuild
         .Executes(() =>
             DockerBuild(s =>
             {
-                string[] tags = GitHubActions.EventName != "workflow_dispatch"
+                string[] tags = GitHubActions?.EventName != "workflow_dispatch"
                     ? [DockerTag, DockerLatestTag]
                     : [DockerTag];
 
@@ -115,7 +114,7 @@ sealed class Build : NukeBuild
     Target PushDockerImage => _ => _
         .DependsOn(BuildDockerImage)
         .Executes(() =>
-            DockerPush(s => s
-                .SetName(DockerName)
-                .EnableAllTags()));
+            CreatedImages.ForEach(i =>
+                DockerPush(s => s
+                    .SetName(DockerName))));
 }
