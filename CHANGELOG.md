@@ -1,3 +1,7 @@
+# 0.1.8
+
+- Pass GitHub context to release
+
 # 0.1.7
 
 - Better handling of image releases

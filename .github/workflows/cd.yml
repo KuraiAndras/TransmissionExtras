@@ -23,3 +23,5 @@ jobs:
 
       - name: "Run CD"
         run: ./build.cmd PushDockerImage CreateGitHubRelease
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
