@@ -1,3 +1,7 @@
+# 0.1.9
+
+- Use `GITHUB_TOKEN` secret explicitly
+
 # 0.1.8
 
 - Pass GitHub context to release
