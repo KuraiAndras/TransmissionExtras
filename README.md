@@ -24,6 +24,8 @@ services:
   transmission-extras:
     container_name: transmission-extras
     image: huszky/transmission-extras:latest
+    depends_on:
+      - transmission
     environment:
       Transmission__Url: http://localhost:9095
       Transmission__User: transmission-user # Optional. Only required when authentication is enabled
