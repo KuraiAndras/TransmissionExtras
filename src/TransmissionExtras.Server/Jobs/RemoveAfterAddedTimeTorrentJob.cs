@@ -1,5 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 
+using Microsoft.Extensions.Options;
+
+using Transmission.API.RPC;
+
 namespace TransmissionExtras.Server.Jobs;
 
 public sealed class RemoveAfterAddedTimeTorrentJobData : TorrentJobData
@@ -18,11 +22,11 @@ partial class TorrentJobData { }
 
 public sealed class RemoveAfterAddedTimeTorrentJob : TorrentJob<RemoveAfterAddedTimeTorrentJobData, RemoveAfterAddedTimeTorrentJob>
 {
-    public RemoveAfterAddedTimeTorrentJob(ILogger<RemoveAfterAddedTimeTorrentJob> logger) : base(logger)
+    public RemoveAfterAddedTimeTorrentJob(ILogger<RemoveAfterAddedTimeTorrentJob> logger, IOptions<TransmissionOptions> options) : base(logger, options)
     {
     }
 
-    protected override async Task Execute(RemoveAfterAddedTimeTorrentJobData data)
+    protected override async Task Execute(RemoveAfterAddedTimeTorrentJobData data, Client client, CancellationToken cancellationToken)
     {
     }
 }
