@@ -7,6 +7,8 @@ This project aims to augment Transmission with extra capabilities.
 
 ## Installation
 
+docker-compose:
+
 ```yml
 version: "3.8"
 
@@ -30,25 +32,50 @@ services:
       Transmission__Url: http://localhost:9095
       Transmission__User: transmission-user # Optional. Only required when authentication is enabled
       Transmission__Password: MySuperStrongPassword1234! # Optional. Only required when authentication is enabled
-
-      RemoveTorrents__DryRun: false # Optional. By default, it's true
-      RemoveTorrents__DeleteData: true # Optional. By default, it's false
-      RemoveTorrents__CheckInterval: "00:30:00" # Optional. By default, it's 1 hour
-      RemoveTorrents__RemoveAfter: "10:00:00:00" # Remve torrents after 10 days of seeding
-
-      VerifyTorrents__DryRun: false # Optional. By default, it's true
-      VerifyTorrents__CheckInterval: "00:30:00" # Optional. By default, it's 1 hour
+    volumes:
+      - ./transmission-extras/jobs.json:/app/jobs.json
 ```
 
-## Cron schedules
+Job configuration:
+```json
+[
+    {
+        "id": "remove-after-seed-time",
+        "dryRun": true,
+        "cron": "0 0 0/1 1/1 * ? *",
+        "runOnStartup": true,
+        "after": "11.00:00:00",
+        "deleteData": true
+    },
+    {
+        "id": "remove-after-added-time",
+        "dryRun": true,
+        "cron": "0 0 0/1 1/1 * ? *",
+        "runOnStartup": true,
+        "after": "15.00:00:00",
+        "deleteData": true
+    },
+    {
+        "id": "verify",
+        "dryRun": true,
+        "cron": "0 0 0/1 1/1 * ? *",
+        "runOnStartup": true
+    }
+]
+```
 
 For creating cron schedules it is advised to use [CronMaker](http://www.cronmaker.com/).
+The elapsed time refer to [this](https://learn.microsoft.com/en-us/dotnet/api/system.timespan.parse) documentation.
 
 ## Features
 
-### Torrent removal
+### Remove torrent after seed time
 
-Automatically remove torrents after a set amount of time.
+Automatically remove torrents after seeding set amount of time. Might not be accurate https://github.com/transmission/transmission/issues/870 https://github.com/linuxserver/docker-transmission/issues/262
+
+### Remover torrent after added time
+
+Automatically remove torrents after added date plus a set amount of time. Can be used to overcome the issues with seed time.
 
 ### Torrent verification
 

@@ -6,6 +6,9 @@
 - Use Serilog for logging
 - Log to both console and file
 - Gracefully handle job stopping
+- Use Quartz for scheduling
+- Use JSON configuration for job definitions
+- Add remove after added date
 
 # 0.1.11
 
