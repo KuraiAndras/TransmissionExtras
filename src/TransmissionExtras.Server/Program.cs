@@ -42,6 +42,8 @@ try
 
     builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
 
+    builder.Services.AddSingleton(TimeProvider.System);
+
     builder.Services
         .AddOptions<TransmissionOptions>()
         .Bind(builder.Configuration.GetSection(TransmissionOptions.Section));

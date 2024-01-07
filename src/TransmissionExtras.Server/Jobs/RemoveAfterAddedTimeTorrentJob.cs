@@ -67,6 +67,6 @@ public sealed partial class RemoveAfterAddedTimeTorrentJob : TorrentJob<RemoveAf
     [LoggerMessage(
         EventId = EventIds.RemoveAfterAddedTimeTorrentJob.RemovedTorrent,
         Level = LogLevel.Information,
-        Message = "Removed torrent {id}, {name}, remove after {removeDate}")]
+        Message = "Removed torrent after added date: {id}, {name}, remove after {removeDate}")]
     private static partial void LogRemovedTorrent(ILogger logger, int id, string name, DateTimeOffset removeDate);
 }

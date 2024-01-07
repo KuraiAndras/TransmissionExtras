@@ -9,6 +9,7 @@
 - Use Quartz for scheduling
 - Use JSON configuration for job definitions
 - Add remove after added date
+- Remove unneeded files from publish
 
 # 0.1.11
 

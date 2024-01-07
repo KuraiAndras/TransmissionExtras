@@ -37,6 +37,9 @@ sealed class Build : NukeBuild
     [Parameter("Runtime used for publishing. Default is dotnet default value")]
     readonly string? Runtime;
 
+    [Parameter("Env values for docker run. Sparate value decalrations by ';'")]
+    readonly string? RunEnvs;
+
     AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
     AbsolutePath ServerOutput => ArtifactsDirectory / "server";
 
@@ -92,6 +95,16 @@ sealed class Build : NukeBuild
                 return s;
             }));
 
+    Target RemovePublishFiles => _ => _
+        .After(Publish)
+        .TriggeredBy(Publish)
+        .Before(BuildDockerImage)
+        .Executes(() =>
+        {
+            (ServerOutput / "jobs.json").DeleteFile();
+            (ServerOutput / "appsettings.Development.json").DeleteFile();
+        });
+
     Target SetDockerLogger => _ => _
         .DependentFor(BuildDockerImage, PushDockerImage)
         .Executes(() => DockerLogger = (_, log) => Log.Information(log));
@@ -119,7 +132,8 @@ sealed class Build : NukeBuild
             DockerRun(s => s
                 .SetName(DebugContainerName)
                 .SetImage(DockerTag)
-                .SetEnv("ASPNETCORE_ENVIRONMENT=Development")));
+                .SetEnv(RunEnvs?.Split(';') ?? [])
+                .SetVolume($"{Solution.TransmissionExtras_Server.Directory / "jobs.json"}:/app/jobs.json")));
 
     Target RemoveDockerContainer => _ => _
         .TriggeredBy(RunDocker)

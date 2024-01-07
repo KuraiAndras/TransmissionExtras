@@ -63,6 +63,6 @@ public sealed partial class RemoveAfterSeedTimeTorrentJob : TorrentJob<RemoveAft
     [LoggerMessage(
         EventId = EventIds.RemoveAfterSeedTimeTorrentJob.RemovedTorrent,
         Level = LogLevel.Information,
-        Message = "Removed torrent {id}, {name}, {secondsSeeding} seconds")]
+        Message = "Removed torrent after seed time: {id}, {name}, {secondsSeeding} seconds")]
     private static partial void LogRemovedTorrent(ILogger logger, int id, string name, int secondsSeeding);
 }
