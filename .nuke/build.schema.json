@@ -66,6 +66,10 @@
           "type": "string",
           "description": "Root directory during build execution"
         },
+        "RunEnvs": {
+          "type": "string",
+          "description": "Env values for docker run. Sparate value decalrations by ';'"
+        },
         "Runtime": {
           "type": "string",
           "description": "Runtime used for publishing. Default is dotnet default value"
@@ -82,6 +86,7 @@
               "Publish",
               "PushDockerImage",
               "RemoveDockerContainer",
+              "RemovePublishFiles",
               "Restore",
               "RunDocker",
               "SetDockerLogger"
@@ -104,6 +109,7 @@
               "Publish",
               "PushDockerImage",
               "RemoveDockerContainer",
+              "RemovePublishFiles",
               "Restore",
               "RunDocker",
               "SetDockerLogger"
