@@ -20,9 +20,17 @@ public static class EventIds
         public const int RemovedTorrent = ClassId + 1;
     }
 
-    public static class VerifyTorrentJob
+    public static class RemoveAfterAddedTimeTorrentJob
     {
         private const int ClassId = ProjectId + 002_000;
+
+        public const int DryRun = ClassId + 0;
+        public const int RemovedTorrent = ClassId + 1;
+    }
+
+    public static class VerifyTorrentJob
+    {
+        private const int ClassId = ProjectId + 003_000;
 
         public const int DryRun = ClassId + 0;
         public const int VerifyingTorrent = ClassId + 1;
