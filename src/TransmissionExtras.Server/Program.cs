@@ -1,15 +1,17 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
+using Quartz;
+
 using Serilog;
 using Serilog.Events;
 
 using TransmissionExtras.Server;
 using TransmissionExtras.Server.TorrentRemoval;
-using TransmissionExtras.Server.TorrentVerification;
 
 var logFilePath = Path.Combine("logs", "log.log");
 
@@ -46,17 +48,25 @@ try
     builder.Services
         .AddSingleton<IValidateOptions<TransmissionOptions>, ValidateTransmissionOptions>();
 
-    builder.Services
-        .AddOptions<RemoveTorrentsOptions>()
-        .Bind(builder.Configuration.GetSection(RemoveTorrentsOptions.Section));
-    builder.Services
-        .AddSingleton<IValidateOptions<RemoveTorrentsOptions>, ValidateRemoveTorrentsOptions>();
-    builder.Services.AddHostedService<RemoveTorrentsJob>();
+    var jobs = await GetJobs() ?? throw new Exception("Could not find any jobs to run");
 
-    builder.Services
-        .AddOptions<VerifyTorrentsOptions>()
-        .Bind(builder.Configuration.GetSection(VerifyTorrentsOptions.Section));
-    builder.Services.AddHostedService<VerifyTorrentsJob>();
+    builder.Services.AddQuartz(q =>
+    {
+        foreach (var torrentJobData in jobs)
+        {
+            q.AddTrigger(t => t
+                .WithCronSchedule(torrentJobData.Cron)
+                .WithIdentity($"{torrentJobData.Id}-cron")
+                .ForJob(torrentJobData.Key.Value));
+
+            q.AddJob(
+                torrentJobData.HandlerType,
+                torrentJobData.Key.Value,
+                j => j.UsingJobData(new() { { TorrentJobData.JobDataKey, torrentJobData } }));
+        }
+    });
+
+    builder.Services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
 
     var app = builder.Build();
 
@@ -86,7 +96,6 @@ try
     try
     {
         _ = app.Services.GetRequiredService<IOptions<TransmissionOptions>>().Value;
-        _ = app.Services.GetRequiredService<IOptions<RemoveTorrentsOptions>>().Value;
     }
     catch (OptionsValidationException e)
     {
@@ -108,6 +117,13 @@ finally
     await Log.CloseAndFlushAsync();
 }
 
+static async Task<TorrentJobData[]?> GetJobs()
+{
+    await using var file = File.OpenRead("jobs.json");
+
+    return await JsonSerializer.DeserializeAsync(file, TorrentJobJsonSerializerContext.Default.TorrentJobDataArray);
+}
+
 partial class Program
 {
     [LoggerMessage(
@@ -124,5 +140,4 @@ partial class Program
 record HealthCheckResult(string Status);
 
 [JsonSerializable(typeof(HealthCheckResult))]
-
 internal partial class AppJsonSerializerContext : JsonSerializerContext { }
