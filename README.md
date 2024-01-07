@@ -40,6 +40,10 @@ services:
       VerifyTorrents__CheckInterval: "00:30:00" # Optional. By default, it's 1 hour
 ```
 
+## Cron schedules
+
+For creating cron schedules it is advised to use [CronMaker](http://www.cronmaker.com/).
+
 ## Features
 
 ### Torrent removal

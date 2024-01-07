@@ -59,10 +59,20 @@ try
                 .WithIdentity($"{torrentJobData.Id}-cron")
                 .ForJob(torrentJobData.Key.Value));
 
+            if (torrentJobData.RunOnStartup == true)
+            {
+                q.AddTrigger(t => t
+                    .StartNow()
+                    .WithIdentity($"{torrentJobData.Id}-startup")
+                    .ForJob(torrentJobData.Key.Value));
+            }
+
             q.AddJob(
                 torrentJobData.HandlerType,
                 torrentJobData.Key.Value,
-                j => j.UsingJobData(new() { { TorrentJobData.JobDataKey, torrentJobData } }));
+                j => j
+                    .DisallowConcurrentExecution()
+                    .UsingJobData(new() { { TorrentJobData.JobDataKey, torrentJobData } }));
         }
     });
 

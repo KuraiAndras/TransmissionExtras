@@ -1,4 +1,6 @@
-﻿using Quartz;
+﻿using System.Text.Json;
+
+using Quartz;
 
 namespace TransmissionExtras.Server.Jobs;
 
@@ -13,11 +15,9 @@ public abstract class TorrentJob<TData, TSelf> : IJob where TData : TorrentJobDa
 
     public async Task Execute(IJobExecutionContext context)
     {
-        var data = (TData)context.MergedJobDataMap[TorrentJobData.JobDataKey];
+        Logger.LogInformation("Starting job {key} on trigger {trigger}", context.JobDetail.Key.Name, context.Trigger.Key.Name);
 
-        Logger.LogInformation("Starting job {JobId}", data.Id);
-
-        await Execute(data);
+        await Execute((TData)context.MergedJobDataMap[TorrentJobData.JobDataKey]);
     }
 
     protected abstract Task Execute(TData data);

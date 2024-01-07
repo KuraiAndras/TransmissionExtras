@@ -2,20 +2,23 @@
     {
         "id": "remove-after-seed-time",
         "dryRun": true,
-        "cron": "0 0/1 * 1/1 * ? *",
+        "cron": "0 0 0/1 1/1 * ? *",
+        "runOnStartup": true,
         "after": "11.00:00:00",
         "deleteData": true
     },
     {
         "id": "remove-after-added-time",
         "dryRun": true,
-        "cron": "0 0/1 * 1/1 * ? *",
+        "cron": "0 0 0/1 1/1 * ? *",
+        "runOnStartup": true,
         "after": "15.00:00:00",
         "deleteData": true
     },
     {
         "id": "verify",
         "dryRun": true,
-        "cron": "0 0/1 * 1/1 * ? *"
+        "cron": "0 0 0/1 1/1 * ? *",
+        "runOnStartup": true
     }
 ]

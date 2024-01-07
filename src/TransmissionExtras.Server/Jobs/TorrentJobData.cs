@@ -30,4 +30,5 @@ public abstract partial class TorrentJobData
 
     public required string Cron { get; init; }
     public bool DryRun { get; init; }
+    public bool? RunOnStartup { get; init; }
 }
