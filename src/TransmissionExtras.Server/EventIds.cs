@@ -1,4 +1,4 @@
-﻿namespace TransmissionExtras.Server;
+namespace TransmissionExtras.Server;
 
 public static class EventIds
 {
@@ -12,15 +12,12 @@ public static class EventIds
         public const int HealthCheckFailed = ClassId + 1;
     }
 
-    public static class RemoveTorrentsJob
+    public static class RemoveAfterSeedTimeTorrentJob
     {
         private const int ClassId = ProjectId + 001_000;
 
-        public const int RemovingTorrentsJobFailed = ClassId + 0;
-        public const int RemovingTorrentsFailed = ClassId + 1;
-        public const int DryRun = ClassId + 2;
-        public const int RemovedTorrent = ClassId + 3;
-        public const int RemovingTorrentsJobStopping = ClassId + 4;
+        public const int DryRun = ClassId + 0;
+        public const int RemovedTorrent = ClassId + 1;
     }
 
     public static class VerifyTorrentsJob
