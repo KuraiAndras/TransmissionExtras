@@ -6,7 +6,7 @@ using Transmission.API.RPC;
 
 namespace TransmissionExtras.Server.Jobs;
 
-public abstract class TorrentJob<TData, TSelf> : IJob where TData : TorrentJobData
+public abstract partial class TorrentJob<TData, TSelf> : IJob where TData : TorrentJobData
 {
     protected TorrentJob(ILogger<TSelf> logger, IOptions<TransmissionOptions> options)
     {
@@ -19,7 +19,8 @@ public abstract class TorrentJob<TData, TSelf> : IJob where TData : TorrentJobDa
 
     public async Task Execute(IJobExecutionContext context)
     {
-        Logger.LogInformation("Starting job {key} on trigger {trigger}", context.JobDetail.Key.Name, context.Trigger.Key.Name);
+
+        LogStartingJob(Logger, context.JobDetail.Key.Name, context.Trigger.Key.Name);
 
         try
         {
@@ -27,13 +28,32 @@ public abstract class TorrentJob<TData, TSelf> : IJob where TData : TorrentJobDa
         }
         catch (TaskCanceledException e)
         {
-            Logger.LogInformation(e, "Cancelled job {key}", context.JobDetail.Key.Name);
+            LogCancelledJob(Logger, e, context.JobDetail.Key.Name);
         }
         catch (Exception e)
         {
-            Logger.LogError(e, "Job {key} failed", context.JobDetail.Key.Name);
+            LogJobFailed(Logger, e, context.JobDetail.Key.Name);
         }
     }
 
     protected abstract Task Execute(TData data, Client client, CancellationToken cancellationToken);
+
+
+    [LoggerMessage(
+        EventId = EventIds.TorrentJob.StartingJob,
+        Level = LogLevel.Information,
+        Message = "Starting job {key} on trigger {trigger}")]
+    private static partial void LogStartingJob(ILogger logger, string key, string trigger);
+
+    [LoggerMessage(
+        EventId = EventIds.TorrentJob.CancelledJob,
+        Level = LogLevel.Information,
+        Message = "Cancelled job {key}")]
+    private static partial void LogCancelledJob(ILogger logger, TaskCanceledException e, string key);
+
+    [LoggerMessage(
+        EventId = EventIds.TorrentJob.JobFailed,
+        Level = LogLevel.Information,
+        Message = "Job {key} failed")]
+    private static partial void LogJobFailed(ILogger logger, Exception e, string key);
 }
