@@ -149,5 +149,5 @@ sealed class Build : NukeBuild
         .Executes(() =>
             CreatedImages.ForEach(i =>
                 DockerPush(s => s
-                    .SetName(DockerName))));
+                    .SetName(i))));
 }

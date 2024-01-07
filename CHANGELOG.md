@@ -1,3 +1,7 @@
+# 0.2.1
+
+- Fix tag publishing
+
 # 0.2.0
 
 - Properly handle torrents which need verification
