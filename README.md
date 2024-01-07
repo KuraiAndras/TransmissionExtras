@@ -65,13 +65,16 @@ Job configuration:
 ```
 
 For creating cron schedules it is advised to use [CronMaker](http://www.cronmaker.com/).
-The elapsed time refer to [this](https://learn.microsoft.com/en-us/dotnet/api/system.timespan.parse) documentation.
+
+For the elapsed time syntax refer to [this](https://learn.microsoft.com/en-us/dotnet/api/system.timespan.parse) documentation.
 
 ## Features
 
 ### Remove torrent after seed time
 
-Automatically remove torrents after seeding set amount of time. Might not be accurate https://github.com/transmission/transmission/issues/870 https://github.com/linuxserver/docker-transmission/issues/262
+Automatically remove torrents after seeding set amount of time. Might not be accurate:
+- https://github.com/transmission/transmission/issues/870
+- https://github.com/linuxserver/docker-transmission/issues/262
 
 ### Remover torrent after added time
 
