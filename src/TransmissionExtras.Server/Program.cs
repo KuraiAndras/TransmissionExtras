@@ -11,7 +11,7 @@ using Serilog;
 using Serilog.Events;
 
 using TransmissionExtras.Server;
-using TransmissionExtras.Server.TorrentRemoval;
+using TransmissionExtras.Server.Jobs;
 
 var logFilePath = Path.Combine("logs", "log.log");
 
@@ -77,7 +77,6 @@ try
         try
         {
             _ = app.Services.GetRequiredService<IOptions<TransmissionOptions>>().Value;
-            _ = app.Services.GetRequiredService<IOptions<RemoveTorrentsOptions>>().Value;
 
             var client = TransmissionClientFactory.GetClient(options.Value);
 
