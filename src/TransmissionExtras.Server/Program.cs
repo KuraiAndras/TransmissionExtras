@@ -29,8 +29,6 @@ try
     var builder = WebApplication.CreateSlimBuilder(args);
 
     builder.Host.UseSerilog((context, services, configuration) => configuration
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-        .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
         .Enrich.FromLogContext()
@@ -81,8 +79,6 @@ try
     builder.Services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
 
     var app = builder.Build();
-
-    app.UseSerilogRequestLogging();
 
     app.MapGet("api/healthcheck", async Task<Results<Ok<HealthCheckResult>, ProblemHttpResult>> ([FromServices] IOptions<TransmissionOptions> options) =>
     {
