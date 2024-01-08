@@ -1,3 +1,7 @@
+# 0.2.2
+
+- Fix verbose HTTP request logging logging.
+
 # 0.2.1
 
 - Fix tag publishing
