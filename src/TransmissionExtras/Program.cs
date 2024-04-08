@@ -10,8 +10,8 @@ using Quartz;
 using Serilog;
 using Serilog.Events;
 
-using TransmissionExtras.Server;
-using TransmissionExtras.Server.Jobs;
+using TransmissionExtras;
+using TransmissionExtras.Jobs;
 
 
 var builder = Host.CreateApplicationBuilder(args);

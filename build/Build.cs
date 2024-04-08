@@ -71,7 +71,7 @@ sealed class Build : NukeBuild
             DotNetPublish(s =>
             {
                 s = s
-                    .SetProject(Solution.TransmissionExtras_Server)
+                    .SetProject(Solution.TransmissionExtras)
                     .SetOutput(ServerOutput)
                     .SetConfiguration(Configuration)
                     .SetVersion(GitVersion.NuGetVersionV2);
@@ -110,7 +110,7 @@ sealed class Build : NukeBuild
                 CreatedImages.AddRange(tags);
 
                 return s
-                    .SetFile(Solution.TransmissionExtras_Server.Directory / "Dockerfile")
+                    .SetFile(Solution.TransmissionExtras.Directory / "Dockerfile")
                     .SetPath(RootDirectory)
                     .SetTag(tags);
             }));
@@ -122,7 +122,7 @@ sealed class Build : NukeBuild
                 .SetName(DebugContainerName)
                 .SetImage(DockerTag)
                 .SetEnv(RunEnvs?.Split(';') ?? [])
-                .SetVolume($"{Solution.TransmissionExtras_Server.Directory / "jobs.json"}:/app/jobs.json")));
+                .SetVolume($"{Solution.TransmissionExtras.Directory / "jobs.json"}:/app/jobs.json")));
 
     Target RemoveDockerContainer => _ => _
         .TriggeredBy(RunDocker)

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Transmission.API.RPC;
 using Transmission.API.RPC.Entity;
 
-namespace TransmissionExtras.Server.Jobs;
+namespace TransmissionExtras.Jobs;
 
 public sealed class RemoveAfterSeedTimeTorrentJobData : TorrentJobData
 {

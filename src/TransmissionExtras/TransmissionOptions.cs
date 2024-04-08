@@ -2,7 +2,7 @@
 
 using Microsoft.Extensions.Options;
 
-namespace TransmissionExtras.Server;
+namespace TransmissionExtras;
 
 public sealed class TransmissionOptions
 {

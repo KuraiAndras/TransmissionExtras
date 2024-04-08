@@ -1,4 +1,4 @@
-﻿namespace TransmissionExtras.Server;
+﻿namespace TransmissionExtras;
 
 public static class EventIds
 {

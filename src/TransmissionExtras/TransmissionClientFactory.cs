@@ -1,6 +1,6 @@
 ﻿using Transmission.API.RPC;
 
-namespace TransmissionExtras.Server;
+namespace TransmissionExtras;
 
 public static class TransmissionClientFactory
 {

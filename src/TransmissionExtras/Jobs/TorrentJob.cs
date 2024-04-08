@@ -5,7 +5,7 @@ using Quartz;
 
 using Transmission.API.RPC;
 
-namespace TransmissionExtras.Server.Jobs;
+namespace TransmissionExtras.Jobs;
 
 public abstract partial class TorrentJob<TData, TSelf> : IJob where TData : TorrentJobData
 {
