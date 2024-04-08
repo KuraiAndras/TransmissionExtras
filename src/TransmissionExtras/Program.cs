@@ -16,7 +16,7 @@ using TransmissionExtras.Jobs;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-var serilogLogger = new LoggerConfiguration()
+Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
@@ -26,7 +26,7 @@ var serilogLogger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Logging.ClearProviders();
-builder.Logging.AddSerilog(serilogLogger);
+builder.Logging.AddSerilog();
 
 builder.Services.AddSingleton(TimeProvider.System);
 
@@ -39,7 +39,7 @@ builder.Services.AddQuartz(q =>
 {
     if (jobs == null || jobs.Length == 0)
     {
-        serilogLogger.Warning("No jobs found in jobs.json");
+        Log.Warning("No jobs found in jobs.json");
         return;
     }
 
