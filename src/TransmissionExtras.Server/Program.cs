@@ -16,14 +16,15 @@ using TransmissionExtras.Server.Jobs;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Logging.AddSerilog(new LoggerConfiguration()
+var serilogLogger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .Enrich.WithDemystifiedStackTraces()
     .WriteTo.Console()
     .WriteTo.Async(a => a.File(Path.Combine("logs", "log.log"), rollingInterval: RollingInterval.Day))
-    .CreateLogger());
+    .CreateLogger();
+builder.Logging.AddSerilog(serilogLogger);
 
 builder.Services.AddSingleton(TimeProvider.System);
 
@@ -33,10 +34,16 @@ builder.Services
 builder.Services
     .AddSingleton<IValidateOptions<TransmissionOptions>, ValidateTransmissionOptions>();
 
-var jobs = await GetJobs() ?? throw new Exception("Could not find any jobs to run");
+var jobs = await GetJobs();
 
 builder.Services.AddQuartz(q =>
 {
+    if (jobs == null || jobs.Length == 0)
+    {
+        serilogLogger.Warning("No jobs found in jobs.json");
+        return;
+    }
+
     foreach (var torrentJobData in jobs)
     {
         q.AddTrigger(t => t
@@ -74,7 +81,7 @@ try
 catch (OptionsValidationException e)
 {
     LogSettingsValidationFailed(logger, e);
-    return -1;
+    return -2;
 }
 
 try
@@ -84,7 +91,7 @@ try
 catch (Exception e)
 {
     LogRunningApplicationFailed(logger, e);
-    return -2;
+    return -3;
 }
 
 return 0;
