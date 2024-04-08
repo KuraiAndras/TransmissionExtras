@@ -9,7 +9,7 @@ public static class EventIds
         private const int ClassId = ProjectId + 000_000;
 
         public const int SettingsValidationFailed = ClassId + 0;
-        public const int HealthCheckFailed = ClassId + 1;
+        public const int RunningApplicationFailed = ClassId + 1;
     }
 
     public static class TorrentJob

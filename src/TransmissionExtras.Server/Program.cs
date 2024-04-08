@@ -1,8 +1,8 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Quartz;
@@ -13,116 +13,81 @@ using Serilog.Events;
 using TransmissionExtras.Server;
 using TransmissionExtras.Server.Jobs;
 
-var logFilePath = Path.Combine("logs", "log.log");
 
-Log.Logger = new LoggerConfiguration()
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Logging.AddSerilog(new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .Enrich.WithDemystifiedStackTraces()
     .WriteTo.Console()
-    .WriteTo.Async(a => a.File(logFilePath, rollingInterval: RollingInterval.Day), blockWhenFull: true)
-    .CreateBootstrapLogger();
+    .WriteTo.Async(a => a.File(Path.Combine("logs", "log.log"), rollingInterval: RollingInterval.Day))
+    .CreateLogger());
+
+builder.Services.AddSingleton(TimeProvider.System);
+
+builder.Services
+    .AddOptions<TransmissionOptions>()
+    .Bind(builder.Configuration.GetSection(TransmissionOptions.Section));
+builder.Services
+    .AddSingleton<IValidateOptions<TransmissionOptions>, ValidateTransmissionOptions>();
+
+var jobs = await GetJobs() ?? throw new Exception("Could not find any jobs to run");
+
+builder.Services.AddQuartz(q =>
+{
+    foreach (var torrentJobData in jobs)
+    {
+        q.AddTrigger(t => t
+            .WithCronSchedule(torrentJobData.Cron)
+            .WithIdentity($"{torrentJobData.Id}-cron")
+            .ForJob(torrentJobData.Key.Value));
+
+        if (torrentJobData.RunOnStartup == true)
+        {
+            q.AddTrigger(t => t
+                .StartNow()
+                .WithIdentity($"{torrentJobData.Id}-startup")
+                .ForJob(torrentJobData.Key.Value));
+        }
+
+        q.AddJob(
+            torrentJobData.HandlerType,
+            torrentJobData.Key.Value,
+            j => j
+                .DisallowConcurrentExecution()
+                .UsingJobData(new() { { TorrentJobData.JobDataKey, torrentJobData } }));
+    }
+});
+
+builder.Services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
+
+var app = builder.Build();
+
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
 try
 {
-    var builder = WebApplication.CreateSlimBuilder(args);
+    _ = app.Services.GetRequiredService<IOptions<TransmissionOptions>>().Value;
+}
+catch (OptionsValidationException e)
+{
+    LogSettingsValidationFailed(logger, e);
+    return -1;
+}
 
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .Enrich.WithDemystifiedStackTraces()
-        .WriteTo.Console()
-        .WriteTo.Async(a => a.File(logFilePath, rollingInterval: RollingInterval.Day)));
-
-    // Add services to the container.
-
-    builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
-
-    builder.Services.AddSingleton(TimeProvider.System);
-
-    builder.Services
-        .AddOptions<TransmissionOptions>()
-        .Bind(builder.Configuration.GetSection(TransmissionOptions.Section));
-    builder.Services
-        .AddSingleton<IValidateOptions<TransmissionOptions>, ValidateTransmissionOptions>();
-
-    var jobs = await GetJobs() ?? throw new Exception("Could not find any jobs to run");
-
-    builder.Services.AddQuartz(q =>
-    {
-        foreach (var torrentJobData in jobs)
-        {
-            q.AddTrigger(t => t
-                .WithCronSchedule(torrentJobData.Cron)
-                .WithIdentity($"{torrentJobData.Id}-cron")
-                .ForJob(torrentJobData.Key.Value));
-
-            if (torrentJobData.RunOnStartup == true)
-            {
-                q.AddTrigger(t => t
-                    .StartNow()
-                    .WithIdentity($"{torrentJobData.Id}-startup")
-                    .ForJob(torrentJobData.Key.Value));
-            }
-
-            q.AddJob(
-                torrentJobData.HandlerType,
-                torrentJobData.Key.Value,
-                j => j
-                    .DisallowConcurrentExecution()
-                    .UsingJobData(new() { { TorrentJobData.JobDataKey, torrentJobData } }));
-        }
-    });
-
-    builder.Services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
-
-    var app = builder.Build();
-
-    app.MapGet("api/healthcheck", async Task<Results<Ok<HealthCheckResult>, ProblemHttpResult>> ([FromServices] IOptions<TransmissionOptions> options) =>
-    {
-        try
-        {
-            _ = app.Services.GetRequiredService<IOptions<TransmissionOptions>>().Value;
-
-            var client = TransmissionClientFactory.GetClient(options.Value);
-
-            _ = await client.GetSessionInformationAsync();
-
-            return TypedResults.Ok<HealthCheckResult>(new("Ok"));
-        }
-        catch (Exception ex)
-        {
-            LogHealthCheckFailed(app.Logger, ex);
-
-            return TypedResults.Problem(title: "Healthchecks failed", detail: ex.Message);
-        }
-    });
-
-    try
-    {
-        _ = app.Services.GetRequiredService<IOptions<TransmissionOptions>>().Value;
-    }
-    catch (OptionsValidationException e)
-    {
-        LogSettingsValidationFailed(app.Logger, e);
-        return -1;
-    }
-
+try
+{
     await app.RunAsync();
-    return 0;
 }
 catch (Exception e)
 {
-    Log.Fatal(e, "Application terminated unexpectedly");
-
+    LogRunningApplicationFailed(logger, e);
     return -2;
 }
-finally
-{
-    await Log.CloseAndFlushAsync();
-}
+
+return 0;
 
 static async Task<TorrentJobData[]?> GetJobs()
 {
@@ -139,12 +104,8 @@ partial class Program
     static partial void LogSettingsValidationFailed(Microsoft.Extensions.Logging.ILogger logger, OptionsValidationException e);
 
     [LoggerMessage(
-        EventId = EventIds.Program.HealthCheckFailed,
-        Level = LogLevel.Critical)]
-    static partial void LogHealthCheckFailed(Microsoft.Extensions.Logging.ILogger logger, Exception e);
+        EventId = EventIds.Program.RunningApplicationFailed,
+        Level = LogLevel.Critical,
+        Message = "Running the application has failed")]
+    static partial void LogRunningApplicationFailed(Microsoft.Extensions.Logging.ILogger logger, Exception e);
 }
-
-record HealthCheckResult(string Status);
-
-[JsonSerializable(typeof(HealthCheckResult))]
-internal partial class AppJsonSerializerContext : JsonSerializerContext { }
