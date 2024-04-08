@@ -30,15 +30,28 @@ public abstract partial class TorrentJob<TData, TSelf> : IJob where TData : Torr
         catch (TaskCanceledException e)
         {
             LogCancelledJob(Logger, e, context.JobDetail.Key.Name);
+            await ScheduleRetry(context);
         }
         catch (Exception e)
         {
             LogJobFailed(Logger, e, context.JobDetail.Key.Name);
+            await ScheduleRetry(context);
         }
     }
 
-    protected abstract Task Execute(TData data, Client client, CancellationToken cancellationToken);
+    private async ValueTask ScheduleRetry(IJobExecutionContext context)
+    {
+        var oldTrigger = context.Trigger;
 
+        var newTrigger = TriggerBuilder.Create()
+            .WithIdentity($"{oldTrigger.Key.Name}-retry", oldTrigger.Key.Group)
+            .StartAt(DateTimeOffset.UtcNow.Add(Options.Value.RetryTimeout))
+            .Build();
+
+        await context.Scheduler.ScheduleJob(newTrigger);
+    }
+
+    protected abstract Task Execute(TData data, Client client, CancellationToken cancellationToken);
 
     [LoggerMessage(
         EventId = EventIds.TorrentJob.StartingJob,
@@ -48,13 +61,13 @@ public abstract partial class TorrentJob<TData, TSelf> : IJob where TData : Torr
 
     [LoggerMessage(
         EventId = EventIds.TorrentJob.CancelledJob,
-        Level = LogLevel.Information,
+        Level = LogLevel.Warning,
         Message = "Cancelled job {key}")]
     private static partial void LogCancelledJob(ILogger logger, TaskCanceledException e, string key);
 
     [LoggerMessage(
         EventId = EventIds.TorrentJob.JobFailed,
-        Level = LogLevel.Information,
+        Level = LogLevel.Warning,
         Message = "Job {key} failed")]
     private static partial void LogJobFailed(ILogger logger, Exception e, string key);
 }
