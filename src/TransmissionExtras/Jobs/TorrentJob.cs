@@ -48,6 +48,7 @@ public abstract partial class TorrentJob<TData, TSelf> : IJob where TData : Torr
         var newTrigger = TriggerBuilder.Create()
             .WithIdentity($"{oldTrigger.Key.Name}-retry", oldTrigger.Key.Group)
             .StartAt(Time.GetLocalNow().Add(Options.Value.RetryTimeout))
+            .ForJob(context.JobDetail)
             .Build();
 
         await context.Scheduler.ScheduleJob(newTrigger);

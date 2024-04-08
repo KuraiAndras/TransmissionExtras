@@ -1,3 +1,6 @@
+# 0.3.1
+- Fix retry scheduling
+
 # 0.3.0
 - Add retry to all jobs
 - Remove ASP.NET and healthcheck
