@@ -1,3 +1,7 @@
+# 0.3.0
+- Add retry to all jobs
+- Remove ASP.NET and healthcheck
+
 # 0.2.2
 
 - Fix verbose HTTP request logging logging.

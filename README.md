@@ -32,6 +32,7 @@ services:
       Transmission__Url: http://localhost:9095
       Transmission__User: transmission-user # Optional. Only required when authentication is enabled
       Transmission__Password: MySuperStrongPassword1234! # Optional. Only required when authentication is enabled
+      Transmission__RetryTimeout: 00:05:00 # Optional. Retry timeout for failed jobs. Defaults to 5 minutes
     volumes:
       - ./transmission-extras/jobs.json:/app/jobs.json
 ```
