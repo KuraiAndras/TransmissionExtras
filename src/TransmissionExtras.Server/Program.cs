@@ -24,15 +24,14 @@ var serilogLogger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.Async(a => a.File(Path.Combine("logs", "log.log"), rollingInterval: RollingInterval.Day))
     .CreateLogger();
+
+builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(serilogLogger);
 
 builder.Services.AddSingleton(TimeProvider.System);
 
-builder.Services
-    .AddOptions<TransmissionOptions>()
-    .Bind(builder.Configuration.GetSection(TransmissionOptions.Section));
-builder.Services
-    .AddSingleton<IValidateOptions<TransmissionOptions>, ValidateTransmissionOptions>();
+builder.Services.AddOptions<TransmissionOptions>().Bind(builder.Configuration.GetSection(TransmissionOptions.Section));
+builder.Services.AddSingleton<IValidateOptions<TransmissionOptions>, ValidateTransmissionOptions>();
 
 var jobs = await GetJobs();
 
