@@ -1,11 +1,12 @@
 ﻿using System.Text.Json.Serialization;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Transmission.API.RPC;
 using Transmission.API.RPC.Entity;
 
-namespace TransmissionExtras.Server.Jobs;
+namespace TransmissionExtras.Jobs;
 
 public sealed class RemoveAfterSeedTimeTorrentJobData : TorrentJobData
 {
@@ -26,9 +27,11 @@ public sealed partial class RemoveAfterSeedTimeTorrentJob : TorrentJob<RemoveAft
 {
     private static readonly string[] RemoveTorrentFields = [TorrentFields.ID, TorrentFields.NAME, TorrentFields.SECONDS_SEEDING];
 
-    public RemoveAfterSeedTimeTorrentJob(ILogger<RemoveAfterSeedTimeTorrentJob> logger, IOptions<TransmissionOptions> options) : base(logger, options)
-    {
-    }
+    public RemoveAfterSeedTimeTorrentJob(
+        ILogger<RemoveAfterSeedTimeTorrentJob> logger,
+        IOptions<TransmissionOptions> options,
+        TimeProvider timeProvider)
+        : base(logger, options, timeProvider) { }
 
     protected override async Task Execute(RemoveAfterSeedTimeTorrentJobData data, Client client, CancellationToken cancellationToken)
     {

@@ -1,21 +1,24 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using Quartz;
 
 using Transmission.API.RPC;
 
-namespace TransmissionExtras.Server.Jobs;
+namespace TransmissionExtras.Jobs;
 
 public abstract partial class TorrentJob<TData, TSelf> : IJob where TData : TorrentJobData
 {
-    protected TorrentJob(ILogger<TSelf> logger, IOptions<TransmissionOptions> options)
+    protected TorrentJob(ILogger<TSelf> logger, IOptions<TransmissionOptions> options, TimeProvider timeProvider)
     {
         Logger = logger;
         Options = options;
+        Time = timeProvider;
     }
 
     protected ILogger<TSelf> Logger { get; }
     protected IOptions<TransmissionOptions> Options { get; }
+    protected TimeProvider Time { get; }
 
     public async Task Execute(IJobExecutionContext context)
     {
@@ -29,15 +32,28 @@ public abstract partial class TorrentJob<TData, TSelf> : IJob where TData : Torr
         catch (TaskCanceledException e)
         {
             LogCancelledJob(Logger, e, context.JobDetail.Key.Name);
+            await ScheduleRetry(context);
         }
         catch (Exception e)
         {
             LogJobFailed(Logger, e, context.JobDetail.Key.Name);
+            await ScheduleRetry(context);
         }
     }
 
-    protected abstract Task Execute(TData data, Client client, CancellationToken cancellationToken);
+    private async ValueTask ScheduleRetry(IJobExecutionContext context)
+    {
+        var oldTrigger = context.Trigger;
 
+        var newTrigger = TriggerBuilder.Create()
+            .WithIdentity($"{oldTrigger.Key.Name}-retry", oldTrigger.Key.Group)
+            .StartAt(Time.GetLocalNow().Add(Options.Value.RetryTimeout))
+            .Build();
+
+        await context.Scheduler.ScheduleJob(newTrigger);
+    }
+
+    protected abstract Task Execute(TData data, Client client, CancellationToken cancellationToken);
 
     [LoggerMessage(
         EventId = EventIds.TorrentJob.StartingJob,
@@ -47,13 +63,13 @@ public abstract partial class TorrentJob<TData, TSelf> : IJob where TData : Torr
 
     [LoggerMessage(
         EventId = EventIds.TorrentJob.CancelledJob,
-        Level = LogLevel.Information,
+        Level = LogLevel.Warning,
         Message = "Cancelled job {key}")]
     private static partial void LogCancelledJob(ILogger logger, TaskCanceledException e, string key);
 
     [LoggerMessage(
         EventId = EventIds.TorrentJob.JobFailed,
-        Level = LogLevel.Information,
+        Level = LogLevel.Warning,
         Message = "Job {key} failed")]
     private static partial void LogJobFailed(ILogger logger, Exception e, string key);
 }

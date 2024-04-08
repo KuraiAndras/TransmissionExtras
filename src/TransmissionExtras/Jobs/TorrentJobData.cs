@@ -2,7 +2,7 @@
 
 using Quartz;
 
-namespace TransmissionExtras.Server.Jobs;
+namespace TransmissionExtras.Jobs;
 
 [JsonSourceGenerationOptions
 (

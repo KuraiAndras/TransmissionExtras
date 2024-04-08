@@ -1,11 +1,12 @@
 ﻿using System.Text.Json.Serialization;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Transmission.API.RPC;
 using Transmission.API.RPC.Entity;
 
-namespace TransmissionExtras.Server.Jobs;
+namespace TransmissionExtras.Jobs;
 
 public sealed class VerifyTorrentJobData : TorrentJobData
 {
@@ -23,9 +24,11 @@ public sealed partial class VerifyTorrentJob : TorrentJob<VerifyTorrentJobData, 
 {
     private static readonly string[] VerifyTorrentFields = [TorrentFields.ID, TorrentFields.NAME, TorrentFields.ERROR_STRING, TorrentFields.ERROR];
 
-    public VerifyTorrentJob(ILogger<VerifyTorrentJob> logger, IOptions<TransmissionOptions> options) : base(logger, options)
-    {
-    }
+    public VerifyTorrentJob(
+        ILogger<VerifyTorrentJob> logger,
+        IOptions<TransmissionOptions> options,
+        TimeProvider timeProvider)
+        : base(logger, options, timeProvider) { }
 
     protected override async Task Execute(VerifyTorrentJobData data, Client client, CancellationToken cancellationToken)
     {

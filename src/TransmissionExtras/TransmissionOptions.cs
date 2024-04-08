@@ -2,7 +2,7 @@
 
 using Microsoft.Extensions.Options;
 
-namespace TransmissionExtras.Server;
+namespace TransmissionExtras;
 
 public sealed class TransmissionOptions
 {
@@ -14,6 +14,8 @@ public sealed class TransmissionOptions
     public string? User { get; set; }
 
     public string? Password { get; set; }
+
+    public TimeSpan RetryTimeout { get; set; } = TimeSpan.FromMinutes(1);
 }
 
 [OptionsValidator]

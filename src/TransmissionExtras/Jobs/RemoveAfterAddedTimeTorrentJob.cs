@@ -1,11 +1,12 @@
 ﻿using System.Text.Json.Serialization;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Transmission.API.RPC;
 using Transmission.API.RPC.Entity;
 
-namespace TransmissionExtras.Server.Jobs;
+namespace TransmissionExtras.Jobs;
 
 public sealed class RemoveAfterAddedTimeTorrentJobData : TorrentJobData
 {
@@ -25,18 +26,17 @@ public sealed partial class RemoveAfterAddedTimeTorrentJob : TorrentJob<RemoveAf
 {
     private static readonly string[] RemoveTorrentFields = [TorrentFields.ID, TorrentFields.NAME, TorrentFields.ADDED_DATE];
 
-    private readonly TimeProvider _timeProvider;
-
-    public RemoveAfterAddedTimeTorrentJob(ILogger<RemoveAfterAddedTimeTorrentJob> logger, IOptions<TransmissionOptions> options, TimeProvider timeProvider) : base(logger, options)
-    {
-        _timeProvider = timeProvider;
-    }
+    public RemoveAfterAddedTimeTorrentJob(
+        ILogger<RemoveAfterAddedTimeTorrentJob> logger,
+        IOptions<TransmissionOptions> options,
+        TimeProvider timeProvider)
+        : base(logger, options, timeProvider) { }
 
     protected override async Task Execute(RemoveAfterAddedTimeTorrentJobData data, Client client, CancellationToken cancellationToken)
     {
         var torrents = await client.TorrentGetAsync(RemoveTorrentFields);
 
-        var now = _timeProvider.GetLocalNow();
+        var now = Time.GetLocalNow();
 
         var torrentsToRemove = torrents.Torrents
             .Where(t => DateTimeOffset.FromUnixTimeSeconds(t.AddedDate) + data.After <= now)
