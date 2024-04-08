@@ -11,17 +11,6 @@ using Serilog;
 using static Nuke.Common.Tools.Docker.DockerTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
-[GitHubActions
-(
-    "ci",
-    GitHubActionsImage.Ubuntu2204,
-    OnPushBranches = ["main", "develop"],
-    OnPullRequestBranches = ["main", "develop"],
-    CacheIncludePatterns = [],
-    CacheKeyFiles = [],
-    FetchDepth = 0,
-    InvokedTargets = [nameof(BuildDockerImage)]
-)]
 sealed class Build : NukeBuild
 {
     public static int Main() => Execute<Build>(x => x.Compile);
