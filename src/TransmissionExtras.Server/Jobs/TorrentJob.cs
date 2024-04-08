@@ -9,14 +9,16 @@ namespace TransmissionExtras.Server.Jobs;
 
 public abstract partial class TorrentJob<TData, TSelf> : IJob where TData : TorrentJobData
 {
-    protected TorrentJob(ILogger<TSelf> logger, IOptions<TransmissionOptions> options)
+    protected TorrentJob(ILogger<TSelf> logger, IOptions<TransmissionOptions> options, TimeProvider timeProvider)
     {
         Logger = logger;
         Options = options;
+        Time = timeProvider;
     }
 
     protected ILogger<TSelf> Logger { get; }
     protected IOptions<TransmissionOptions> Options { get; }
+    protected TimeProvider Time { get; }
 
     public async Task Execute(IJobExecutionContext context)
     {
@@ -45,7 +47,7 @@ public abstract partial class TorrentJob<TData, TSelf> : IJob where TData : Torr
 
         var newTrigger = TriggerBuilder.Create()
             .WithIdentity($"{oldTrigger.Key.Name}-retry", oldTrigger.Key.Group)
-            .StartAt(DateTimeOffset.UtcNow.Add(Options.Value.RetryTimeout))
+            .StartAt(Time.GetLocalNow().Add(Options.Value.RetryTimeout))
             .Build();
 
         await context.Scheduler.ScheduleJob(newTrigger);

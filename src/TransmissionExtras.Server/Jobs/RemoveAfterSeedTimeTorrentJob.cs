@@ -27,9 +27,11 @@ public sealed partial class RemoveAfterSeedTimeTorrentJob : TorrentJob<RemoveAft
 {
     private static readonly string[] RemoveTorrentFields = [TorrentFields.ID, TorrentFields.NAME, TorrentFields.SECONDS_SEEDING];
 
-    public RemoveAfterSeedTimeTorrentJob(ILogger<RemoveAfterSeedTimeTorrentJob> logger, IOptions<TransmissionOptions> options) : base(logger, options)
-    {
-    }
+    public RemoveAfterSeedTimeTorrentJob(
+        ILogger<RemoveAfterSeedTimeTorrentJob> logger,
+        IOptions<TransmissionOptions> options,
+        TimeProvider timeProvider)
+        : base(logger, options, timeProvider) { }
 
     protected override async Task Execute(RemoveAfterSeedTimeTorrentJobData data, Client client, CancellationToken cancellationToken)
     {
